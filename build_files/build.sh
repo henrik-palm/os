@@ -177,8 +177,8 @@ dnf5 install -yq libjpeg-turbo libwebp libffi libicu
 
 ##### Boot splash (Plymouth) ###################################################
 # Overwrite the logo in the stock spinner theme
-cp /ctx/build_files/logo.png /usr/share/plymouth/themes/spinner/watermark.png
-cp /ctx/build_files/logo.png /usr/share/plymouth/themes/spinner/silverblue-watermark.png
+cp /ctx/logo.png /usr/share/plymouth/themes/spinner/watermark.png
+cp /ctx/logo.png /usr/share/plymouth/themes/spinner/silverblue-watermark.png
 
 #### Example for enabling a System Unit File
 
