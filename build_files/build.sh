@@ -176,9 +176,37 @@ dnf5 install -yq libjpeg-turbo libwebp libffi libicu
 
 
 ##### Boot splash (Plymouth) ###################################################
+
 # Overwrite the logo in the stock spinner theme
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/watermark.png
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/silverblue-watermark.png
+
+# Ensure spinner is the theme (or your custom theme name)
+mkdir -p /etc/plymouth
+cat > /etc/plymouth/plymouthd.conf <<'EOF'
+[Daemon]
+Theme=spinner
+EOF
+
+# First-boot service to rebuild initramfs/UKI so Plymouth picks up assets
+cat > /etc/systemd/system/plymouth-refresh-initramfs.service <<'EOF'
+[Unit]
+Description=Rebuild initramfs/UKI to pick up Plymouth assets
+ConditionFirstBoot=yes
+After=systemd-remount-fs.service
+Wants=systemd-udev-settle.service
+After=systemd-udev-settle.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -lc 'plymouth-set-default-theme spinner -R || dracut --regenerate-all --force || true'
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl enable plymouth-refresh-initramfs.service
+
 
 #### Example for enabling a System Unit File
 
