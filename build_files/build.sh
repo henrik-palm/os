@@ -181,8 +181,6 @@ dnf5 install -yq libjpeg-turbo libwebp libffi libicu
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/watermark.png
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/silverblue-watermark.png
 
-systemctl enable plymouth-refresh-initramfs.service
-
 #### Example for enabling a System Unit File
 
 systemctl enable podman.socket
