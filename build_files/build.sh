@@ -181,25 +181,66 @@ dnf5 install -yq libjpeg-turbo libwebp libffi libicu
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/watermark.png
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/silverblue-watermark.png
 
-# Ensure spinner is the theme (or your custom theme name)
-mkdir -p /etc/plymouth
-cat > /etc/plymouth/plymouthd.conf <<'EOF'
-[Daemon]
-Theme=spinner
-EOF
-
-# First-boot service to rebuild initramfs/UKI so Plymouth picks up assets
+# One-shot: rebuild initramfs/UKI once so Plymouth picks up new assets, with logging
 cat > /etc/systemd/system/plymouth-refresh-initramfs.service <<'EOF'
 [Unit]
-Description=Rebuild initramfs/UKI to pick up Plymouth assets
-ConditionFirstBoot=yes
+Description=Rebuild initramfs/UKI so Plymouth picks up new Plymouth assets (logged)
 After=systemd-remount-fs.service
 Wants=systemd-udev-settle.service
 After=systemd-udev-settle.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/bash -lc 'plymouth-set-default-theme spinner -R || dracut --regenerate-all --force || true'
+# We log everything we echo to the journal (and console on the first run)
+StandardOutput=journal+console
+StandardError=journal+console
+Environment=STAMP=/var/lib/.plymouth-initramfs-refreshed
+ExecStart=/usr/bin/bash -lc '
+  set -Eeuo pipefail
+  echo "[plymouth-refresh] starting..."
+
+  # Guard: only run once per system until you delete the stamp
+  if [[ -f "$STAMP" ]]; then
+    echo "[plymouth-refresh] already refreshed (found $STAMP); exiting."
+    exit 0
+  fi
+
+  THEME="spinner"
+  # Honor configured theme if present
+  if [[ -f /etc/plymouth/plymouthd.conf ]]; then
+    THEME_LINE=$(grep -i "^Theme=" /etc/plymouth/plymouthd.conf || true)
+    [[ -n "$THEME_LINE" ]] && THEME="${THEME_LINE#Theme=}"
+  fi
+  echo "[plymouth-refresh] theme: $THEME"
+
+  KVER="$(uname -r)"
+  IMG="/boot/initramfs-${KVER}.img"
+  echo "[plymouth-refresh] running kernel: $KVER"
+  if [[ ! -f "$IMG" ]]; then
+    echo "[plymouth-refresh] WARNING: initramfs not found at $IMG; skipping."
+    mkdir -p /var/lib && touch "$STAMP"
+    exit 0
+  fi
+
+  # Check whether the current initramfs already has our Plymouth assets
+  if lsinitrd "$IMG" | grep -q "/usr/share/plymouth/themes/${THEME}/watermark.png"; then
+    echo "[plymouth-refresh] initramfs already contains ${THEME}/watermark.png; no rebuild needed."
+  else
+    echo "[plymouth-refresh] rebuilding initramfs to include Plymouth assets..."
+    if plymouth-set-default-theme "$THEME" -R; then
+      echo "[plymouth-refresh] plymouth-set-default-theme -R succeeded."
+    else
+      echo "[plymouth-refresh] plymouth-set-default-theme failed; falling back to dracut --regenerate-all --force."
+      dracut --regenerate-all --force
+      echo "[plymouth-refresh] dracut completed."
+    fi
+  fi
+
+  # Stamp so we don’t run again next boot
+  mkdir -p /var/lib
+  touch "$STAMP"
+  echo "[plymouth-refresh] done."
+'
 
 [Install]
 WantedBy=multi-user.target
