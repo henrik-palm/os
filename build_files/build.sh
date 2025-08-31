@@ -181,7 +181,7 @@ dnf5 install -yq libjpeg-turbo libwebp libffi libicu
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/watermark.png
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/silverblue-watermark.png
 
-##### Plymouth: install custom theme and set as default ########################
+##### Plymouth: install custom theme and build initramfs #######################
 set -Eeuo pipefail
 
 THEME_NAME="fedora-logo"
@@ -190,63 +190,60 @@ DST_DIR="/usr/share/plymouth/themes/${THEME_NAME}"
 
 # 1) Copy your theme into the image
 if [[ ! -f "${SRC_DIR}/${THEME_NAME}.plymouth" ]]; then
-  echo "ERROR: ${SRC_DIR}/${THEME_NAME}.plymouth not found"; exit 1
+  echo "ERROR: ${SRC_DIR}/${THEME_NAME}.plymouth not found (did you add your theme to build_files/plymouth/${THEME_NAME}/?)"
+  exit 1
 fi
 install -d "${DST_DIR}"
 cp -a "${SRC_DIR}/." "${DST_DIR}/"
 
-# 2) Set defaults (system-wide, baked into the image)
-#    /usr/lib/plymouth/plymouthd.defaults is the distro default file
+# 2) Make it the default theme
 install -d /usr/lib/plymouth
 cat > /usr/lib/plymouth/plymouthd.defaults <<EOF
 [Daemon]
 Theme=${THEME_NAME}
-# Optional: set device timeout and other knobs here if you need them
-# DeviceTimeout=8
 EOF
 
-# 3) Also drop an admin override to be extra explicit at runtime
 install -d /etc/plymouth
 cat > /etc/plymouth/plymouthd.conf <<EOF
 [Daemon]
 Theme=${THEME_NAME}
 EOF
 
-# 4) One-shot service to refresh initramfs/UKI once after switch/install
-cat > /etc/systemd/system/plymouth-refresh-initramfs.service <<'EOF'
-[Unit]
-Description=Rebuild initramfs/UKI so Plymouth picks up custom theme
-After=systemd-remount-fs.service
-Wants=systemd-udev-settle.service
-After=systemd-udev-settle.service
-
-[Service]
-Type=oneshot
-StandardOutput=journal+console
-StandardError=journal+console
-Environment=STAMP=/var/lib/.plymouth-initramfs-refreshed
-ExecStart=/usr/bin/bash -lc '
-  set -Eeuo pipefail
-  echo "[plymouth-refresh] starting..."
-  if [[ -f "$STAMP" ]]; then
-    echo "[plymouth-refresh] already refreshed; exiting."
-    exit 0
-  fi
-  # Ensure the theme name we set is visible in logs
-  echo "[plymouth-refresh] theme: $(grep -i ^Theme= /etc/plymouth/plymouthd.conf || echo Theme=unset)"
-  # Regenerate initramfs/UKI under rpm-ostree control (stages a new deployment)
-  echo "[plymouth-refresh] calling: rpm-ostree initramfs --enable"
-  rpm-ostree initramfs --enable
-  mkdir -p /var/lib
-  touch "$STAMP"
-  echo "[plymouth-refresh] staged new deployment; reboot to apply."
-'
-
-[Install]
-WantedBy=multi-user.target
+# 3) Tell dracut to include plymouth (belt-and-suspenders)
+install -d /usr/lib/dracut/dracut.conf.d
+cat > /usr/lib/dracut/dracut.conf.d/90-plymouth.conf <<'EOF'
+add_dracutmodules+=" plymouth "
 EOF
 
-systemctl enable plymouth-refresh-initramfs.service
+# (Optional) if your theme has non-standard asset locations, force-include them:
+# cat > /usr/lib/dracut/dracut.conf.d/91-plymouth-theme.conf <<EOF
+# install_items+=" /usr/share/plymouth/themes/${THEME_NAME}/* /etc/plymouth/plymouthd.conf /usr/lib/plymouth/plymouthd.defaults "
+# EOF
+
+# 4) Rebuild initramfs inside the image for every kernel present
+#    (Bluefin/bootc images include the kernel under /usr/lib/modules/<kver>/vmlinuz)
+shopt -s nullglob
+kernels=(/usr/lib/modules/*)
+if (( ${#kernels[@]} == 0 )); then
+  echo "WARNING: no /usr/lib/modules/<kver> found; skipping initramfs build"
+else
+  for moddir in "${kernels[@]}"; do
+    kver="$(basename "$moddir")"
+    vmlinuz="${moddir}/vmlinuz"
+    outimg="${moddir}/initramfs.img"
+    if [[ -f "$vmlinuz" ]]; then
+      echo "Rebuilding initramfs for kernel ${kver} -> ${outimg}"
+      # -f to overwrite; --kver to pin the kernel version
+      dracut -f --kver "${kver}" "${outimg}"
+    else
+      echo "Skipping ${kver} (no vmlinuz in ${moddir})"
+    fi
+  done
+fi
+shopt -u nullglob
+
+echo "Plymouth theme '${THEME_NAME}' installed and initramfs rebuilt."
+###############################################################################
 
 #### Example for enabling a System Unit File
 
