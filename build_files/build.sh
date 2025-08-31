@@ -181,6 +181,8 @@ dnf5 install -yq libjpeg-turbo libwebp libffi libicu
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/watermark.png
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/silverblue-watermark.png
 
+dracut --regenerate-all --force
+
 #### Example for enabling a System Unit File
 
 systemctl enable podman.socket
