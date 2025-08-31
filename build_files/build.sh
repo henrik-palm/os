@@ -209,41 +209,19 @@ cat > /etc/plymouth/plymouthd.conf <<EOF
 Theme=${THEME_NAME}
 EOF
 
-# 3) Tell dracut to include plymouth (belt-and-suspenders)
+# 3) Tell dracut to include what's needed (plymouth + ostree)
 install -d /usr/lib/dracut/dracut.conf.d
-cat > /usr/lib/dracut/dracut.conf.d/90-plymouth.conf <<'EOF'
-add_dracutmodules+=" plymouth "
+cat > /usr/lib/dracut/dracut.conf.d/90-plymouth-ostree.conf <<'EOF'
+add_dracutmodules+=" plymouth ostree "
+# Optional: force-include theme assets if your theme uses extras (fonts/plugins)
+# install_items+=" /etc/plymouth/plymouthd.conf /usr/lib/plymouth/plymouthd.defaults "
+# install_items+=" /usr/share/plymouth/themes/fedora-logo/* "
 EOF
 
-# (Optional) if your theme has non-standard asset locations, force-include them:
-# cat > /usr/lib/dracut/dracut.conf.d/91-plymouth-theme.conf <<EOF
-# install_items+=" /usr/share/plymouth/themes/${THEME_NAME}/* /etc/plymouth/plymouthd.conf /usr/lib/plymouth/plymouthd.defaults "
-# EOF
-
 # 4) Rebuild initramfs inside the image for every kernel present
-#    (Bluefin/bootc images include the kernel under /usr/lib/modules/<kver>/vmlinuz)
+#    Use rpm-ostree's wrapped dracut, generic (no-hostonly) initramfs, add ostree explicitly.
 shopt -s nullglob
-kernels=(/usr/lib/modules/*)
-if (( ${#kernels[@]} == 0 )); then
-  echo "WARNING: no /usr/lib/modules/<kver> found; skipping initramfs build"
-else
-  for moddir in "${kernels[@]}"; do
-    kver="$(basename "$moddir")"
-    vmlinuz="${moddir}/vmlinuz"
-    outimg="${moddir}/initramfs.img"
-    if [[ -f "$vmlinuz" ]]; then
-      echo "Rebuilding initramfs for kernel ${kver} -> ${outimg}"
-      # -f to overwrite; --kver to pin the kernel version
-      dracut -f --kver "${kver}" "${outimg}"
-    else
-      echo "Skipping ${kver} (no vmlinuz in ${moddir})"
-    fi
-  done
-fi
-shopt -u nullglob
-
-echo "Plymouth theme '${THEME_NAME}' installed and initramfs rebuilt."
-###############################################################################
+kernels=(/usr/lib/modules
 
 #### Example for enabling a System Unit File
 
