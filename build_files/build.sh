@@ -181,9 +181,34 @@ dnf5 install -yq libjpeg-turbo libwebp libffi libicu
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/watermark.png
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/silverblue-watermark.png
 
+##### Plymouth: install custom theme and set as default ########################
+set -Eeuo pipefail
+
+THEME_NAME="darwin"
+SRC_DIR="/ctx/plymouth/${THEME_NAME}"
+DST_DIR="/usr/share/plymouth/themes/${THEME_NAME}"
+
+# 1) Copy your theme into the image
+if [[ ! -f "${SRC_DIR}/${THEME_NAME}.plymouth" ]]; then
+  echo "ERROR: ${SRC_DIR}/${THEME_NAME}.plymouth not found"; exit 1
+fi
+install -d "${DST_DIR}"
+cp -a "${SRC_DIR}/." "${DST_DIR}/"
+
+# 2) Set defaults (system-wide, baked into the image)
+#    /usr/lib/plymouth/plymouthd.defaults is the distro default file
+install -d /usr/lib/plymouth
+cat > /usr/lib/plymouth/plymouthd.defaults <<EOF
+# Distribution defaults. Changes to this file will get overwritten during
+# upgrades.
+[Daemon]
+Theme=${THEME_NAME}
+ShowDelay=0
+DeviceTimeout=8
+UseSimpledrmNoLuks=1
+EOF
+
 ###############################################################################
-
-
 
 #### Example for enabling a System Unit File
 
