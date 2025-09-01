@@ -191,38 +191,62 @@ DST_DIR="/usr/share/plymouth/themes/${THEME_NAME}"
 # 1) Copy your theme into the image
 if [[ ! -f "${SRC_DIR}/${THEME_NAME}.plymouth" ]]; then
   echo "ERROR: ${SRC_DIR}/${THEME_NAME}.plymouth not found (did you add your theme to build_files/plymouth/${THEME_NAME}/?)"
-  exit 1
-fi
-install -d "${DST_DIR}"
-cp -a "${SRC_DIR}/." "${DST_DIR}/"
+    exit 1
+    fi
+    install -d "${DST_DIR}"
+    cp -a "${SRC_DIR}/." "${DST_DIR}/"
 
-# 2) Make it the default theme
-install -d /usr/lib/plymouth
-cat > /usr/lib/plymouth/plymouthd.defaults <<EOF
-[Daemon]
-Theme=${THEME_NAME}
-EOF
+    # 2) Make it the default theme
+    install -d /usr/lib/plymouth
+    cat > /usr/lib/plymouth/plymouthd.defaults <<EOF
+    [Daemon]
+    Theme=${THEME_NAME}
+    EOF
 
-install -d /etc/plymouth
-cat > /etc/plymouth/plymouthd.conf <<EOF
-[Daemon]
-Theme=${THEME_NAME}
-EOF
+    install -d /etc/plymouth
+    cat > /etc/plymouth/plymouthd.conf <<EOF
+    [Daemon]
+    Theme=${THEME_NAME}
+    EOF
 
-# 3) Tell dracut to include what's needed (plymouth + ostree)
-install -d /usr/lib/dracut/dracut.conf.d
-cat > /usr/lib/dracut/dracut.conf.d/90-plymouth-ostree.conf <<'EOF'
-add_dracutmodules+=" plymouth ostree "
-# Optional: force-include theme assets if your theme uses extras (fonts/plugins)
-# install_items+=" /etc/plymouth/plymouthd.conf /usr/lib/plymouth/plymouthd.defaults "
-# install_items+=" /usr/share/plymouth/themes/fedora-logo/* "
-EOF
+    # 3) Tell dracut to include what's needed (plymouth + ostree)
+    install -d /usr/lib/dracut/dracut.conf.d
+    cat > /usr/lib/dracut/dracut.conf.d/90-plymouth-ostree.conf <<'EOF'
+    add_dracutmodules+=" plymouth ostree "
+    # Optional: force-include theme assets if your theme uses extras (fonts/plugins)
+    # install_items+=" /etc/plymouth/plymouthd.conf /usr/lib/plymouth/plymouthd.defaults "
+    # install_items+=" /usr/share/plymouth/themes/fedora-logo/* "
+    EOF
 
-# 4) Rebuild initramfs inside the image for every kernel present
-#    Use rpm-ostree's wrapped dracut, generic (no-hostonly) initramfs, add ostree explicitly.
-shopt -s nullglob
-kernels=(/usr/lib/modules
+    # 4) Rebuild initramfs inside the image for every kernel present
+    #    Use rpm-ostree's wrapped dracut, generic (no-hostonly) initramfs, add ostree explicitly.
+    shopt -s nullglob
+    kernels=(/usr/lib/modules/*)
+    if (( ${#kernels[@]} == 0 )); then
+    echo "WARNING: no /usr/lib/modules/<kver> found; skipping initramfs build"
+    else
+    for moddir in "${kernels[@]}"; do
+        kver="$(basename "$moddir")"
+        vmlinuz="${moddir}/vmlinuz"
+        outimg="${moddir}/initramfs.img"
+        if [[ -f "$vmlinuz" ]]; then
+        echo "Rebuilding initramfs for kernel ${kver} -> ${outimg}"
+        /usr/libexec/rpm-ostree/wrapped/dracut \
+            --force \
+            --kver "${kver}" \
+            --no-hostonly \
+            --add ostree \
+            "${outimg}"
+        else
+        echo "Skipping ${kver} (no vmlinuz in ${moddir})"
+        fi
+    done
+    fi
+    shopt -u nullglob
 
-#### Example for enabling a System Unit File
+    echo "Plymouth theme '${THEME_NAME}' installed and initramfs rebuilt."
+
+
+    #### Example for enabling a System Unit File
 
 systemctl enable podman.socket
