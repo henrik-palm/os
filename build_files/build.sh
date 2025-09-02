@@ -197,8 +197,7 @@ cp -a "${SRC_DIR}/." "${DST_DIR}/"
 
 # 2) Set defaults (system-wide, baked into the image)
 #    /usr/lib/plymouth/plymouthd.defaults is the distro default file
-install -d /usr/lib/plymouth
-cat > /usr/lib/plymouth/plymouthd.defaults <<EOF
+cat > /usr/share/plymouth/plymouthd.defaults <<EOF
 # Distribution defaults. Changes to this file will get overwritten during
 # upgrades.
 [Daemon]
