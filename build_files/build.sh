@@ -180,6 +180,7 @@ dnf5 install -yq libjpeg-turbo libwebp libffi libicu
 # Overwrite the logo in the stock spinner theme
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/watermark.png
 cp /ctx/logo.png /usr/share/plymouth/themes/spinner/silverblue-watermark.png
+mkdir -p /usr/share/plymouth/themes/devtheme
 
 ##### Plymouth: install custom theme and set as default ########################
 set -Eeuo pipefail
