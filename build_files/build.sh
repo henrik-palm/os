@@ -19,7 +19,11 @@ dnf5 install -y tmux
 # Disable COPRs so they don't end up enabled on the final image:
 # dnf5 -y copr disable ublue-os/staging
 
-### SofusA
+# 1Password
+dnf5 install -yq 1password
+
+#############################################
+### SofusA customizations
 
 mkdir -p $(realpath /root)
 mkdir -p $(realpath /opt)
