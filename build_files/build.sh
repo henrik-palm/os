@@ -189,7 +189,7 @@ mkdir -p /usr/share/plymouth/themes/devtheme
 ##### Plymouth: install custom theme and set as default ########################
 set -Eeuo pipefail
 
-THEME_NAME="fedora-logo"
+THEME_NAME="darwin"
 SRC_DIR="/ctx/plymouth/${THEME_NAME}"
 DST_DIR="/usr/share/plymouth/themes/${THEME_NAME}"
 
