@@ -128,10 +128,10 @@ dnf5 install -yq git-credential-manager
 dnf5 install -yq gh meld
 cargo binstall -yq --root /usr --strategies crate-meta-data jj-cli
 
-wget $(curl -s https://api.github.com/repos/Cretezy/lazyjj/releases/latest | jq -r '.assets[] | select(.name | test(".*linux")).browser_download_url')
-tar -xf lazyjj*tar.gz
-mv lazyjj /usr/bin
-rm lazyjj*tar.gz
+# wget $(curl -s https://api.github.com/repos/Cretezy/lazyjj/releases/latest | jq -r '.assets[] | select(.name | test(".*linux")).browser_download_url')
+# tar -xf lazyjj*tar.gz
+# mv lazyjj /usr/bin
+# rm lazyjj*tar.gz
 
 # Helix
 cargo install --root /usr --git https://github.com/nik-rev/patchy
@@ -162,12 +162,12 @@ dnf5 install -yq rustup
 dnf5 -y autoremove
 
 # Qobuz player
-# dnf5 install -yq rust-glib-sys-devel rust-gstreamer-devel # Qobuz player dependencies
-# # cargo install --root /usr --locked --git https://github.com/sofusa/qobuz-player 
-# wget https://github.com/SofusA/qobuz-player/releases/latest/download/qobuz-player-x86_64-unknown-linux-gnu.tar.gz
-# tar -xf qobuz-player-x86_64-unknown-linux-gnu.tar.gz
-# mv qobuz-player /usr/bin
-# rm qobuz-player-x86_64-unknown-linux-gnu.tar.gz
+dnf5 install -yq rust-glib-sys-devel rust-gstreamer-devel rust-alsa-sys-devel # Qobuz player dependencies
+# cargo install --root /usr --locked --git https://github.com/sofusa/qobuz-player 
+wget https://github.com/SofusA/qobuz-player/releases/latest/download/qobuz-player-x86_64-unknown-linux-gnu.tar.gz
+tar -xf qobuz-player-x86_64-unknown-linux-gnu.tar.gz
+mv qobuz-player /usr/bin
+rm qobuz-player-x86_64-unknown-linux-gnu.tar.gz
  
 # color-scheme
 wget https://github.com/SofusA/color-scheme/releases/latest/download/color-scheme-x86_64-unknown-linux-gnu.zip
