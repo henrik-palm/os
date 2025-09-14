@@ -161,13 +161,13 @@ dnf5 remove -yq cargo rust-analyzer rustfmt clippy
 dnf5 install -yq rustup
 dnf5 -y autoremove
 
-# Qobuz player
-dnf5 install -yq rust-glib-sys-devel rust-gstreamer-devel rust-alsa-sys-devel # Qobuz player dependencies
-# cargo install --root /usr --locked --git https://github.com/sofusa/qobuz-player 
-wget https://github.com/SofusA/qobuz-player/releases/latest/download/qobuz-player-x86_64-unknown-linux-gnu.tar.gz
-tar -xf qobuz-player-x86_64-unknown-linux-gnu.tar.gz
-mv qobuz-player /usr/bin
-rm qobuz-player-x86_64-unknown-linux-gnu.tar.gz
+# # Qobuz player
+# dnf5 install -yq rust-glib-sys-devel rust-gstreamer-devel rust-alsa-sys-devel # Qobuz player dependencies
+# # cargo install --root /usr --locked --git https://github.com/sofusa/qobuz-player 
+# wget https://github.com/SofusA/qobuz-player/releases/latest/download/qobuz-player-x86_64-unknown-linux-gnu.tar.gz
+# tar -xf qobuz-player-x86_64-unknown-linux-gnu.tar.gz
+# mv qobuz-player /usr/bin
+# rm qobuz-player-x86_64-unknown-linux-gnu.tar.gz
  
 # color-scheme
 wget https://github.com/SofusA/color-scheme/releases/latest/download/color-scheme-x86_64-unknown-linux-gnu.zip
