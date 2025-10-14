@@ -150,7 +150,7 @@ cp -r runtime /usr/lib/helix/
 cp target/opt/hx /usr/bin/hx
 cd ..
 # rm -rf helix-pull-diagnostics
-rm -rf helix-dirver
+rm -rf helix-driver
 
 # Desktop
 dnf5 -y copr enable yalter/niri-git
@@ -211,6 +211,41 @@ ShowDelay=0
 DeviceTimeout=8
 UseSimpledrmNoLuks=1
 EOF
+
+###############################################################################
+### Branding: replace Fedora pixmap logos used by GDM & GNOME About ###########
+###############################################################################
+
+# Expect a single source image in the repo at /ctx/logo.png
+LOGO_SRC="/ctx/logo.png"
+
+if [[ ! -f "${LOGO_SRC}" ]]; then
+  echo "ERROR: ${LOGO_SRC} not found. Place logo.png next to build.sh in the repo."
+  exit 1
+fi
+
+install -d -m 0755 /usr/share/pixmaps
+
+# List of target pixmaps to replace
+declare -a PIXMAP_TARGETS=(
+  "/usr/share/pixmaps/fedora-gdm-logo.png"
+  "/usr/share/pixmaps/fedora-logo-icon.png"
+  "/usr/share/pixmaps/fedora_logo_med.png"
+  "/usr/share/pixmaps/fedora-logo.png"
+  "/usr/share/pixmaps/fedora-logo-small.png"
+  "/usr/share/pixmaps/fedora-logo-sprite.png"
+  "/usr/share/pixmaps/fedora_whitelogo_med.png"
+  "/usr/share/pixmaps/system-logo-white.png"
+)
+
+for target in "${PIXMAP_TARGETS[@]}"; do
+  install -D -m 0644 "${LOGO_SRC}" "${target}"
+done
+
+# (Optional) also provide a generic distributor logo most shells/tools look for
+# Uncomment if you want GNOME Settings → About and other places to use it
+# install -D -m 0644 "${LOGO_SRC}" /usr/share/pixmaps/distributor-logo.png
+# install -D -m 0644 "${LOGO_SRC}" /usr/share/icons/hicolor/256x256/apps/distributor-logo.png
 
 ###############################################################################
 
