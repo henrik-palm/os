@@ -114,7 +114,7 @@ chmod +x /usr/bin/bicep-langserver
 rm bicep-langserver.zip
 
 # Shell
-dnf5 install -yq zoxide atuin fd-find ripgrep skim
+dnf5 install -yq zoxide atuin fd-find ripgrep skim starship
 cargo binstall -yq --root /usr sd eza ccase
 dnf5 -y copr enable lihaohong/yazi
 dnf5 -yq install yazi
@@ -154,7 +154,7 @@ rm -rf helix-driver
 
 # Desktop
 dnf5 -y copr enable yalter/niri-git
-dnf5 install -yq niri wl-clipboard swayidle mako
+dnf5 install -yq niri wl-clipboard swayidle mako hyprland
 
 # VPN and password manager
 rpm --import https://repository.mullvad.net/rpm/mullvad-keyring.asc
