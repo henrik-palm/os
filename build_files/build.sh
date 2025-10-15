@@ -216,36 +216,41 @@ EOF
 ### Branding: replace Fedora pixmap logos used by GDM & GNOME About ###########
 ###############################################################################
 
-# Expect a single source image in the repo at /ctx/logo.png
-LOGO_SRC="/ctx/logo.png"
+# Expect two source images in the repo at /ctx/
+LOGO64_SRC="/ctx/logo-64.png"
+LOGO256_SRC="/ctx/logo-256.png"
 
-if [[ ! -f "${LOGO_SRC}" ]]; then
-  echo "ERROR: ${LOGO_SRC} not found. Place logo.png next to build.sh in the repo."
+if [[ ! -f "${LOGO64_SRC}" ]] || [[ ! -f "${LOGO256_SRC}" ]]; then
+  echo "ERROR: Missing logo assets."
+  echo "Ensure both logo-64.png and logo-256.png are next to build.sh in the repo."
   exit 1
 fi
 
 install -d -m 0755 /usr/share/pixmaps
 
-# List of target pixmaps to replace
-declare -a PIXMAP_TARGETS=(
-  "/usr/share/pixmaps/fedora-gdm-logo.png"
-  "/usr/share/pixmaps/fedora-logo-icon.png"
-  "/usr/share/pixmaps/fedora_logo_med.png"
-  "/usr/share/pixmaps/fedora-logo.png"
-  "/usr/share/pixmaps/fedora-logo-small.png"
-  "/usr/share/pixmaps/fedora-logo-sprite.png"
-  "/usr/share/pixmaps/fedora_whitelogo_med.png"
-  "/usr/share/pixmaps/system-logo-white.png"
+# Map each destination to the correct source logo
+declare -A PIXMAP_MAP=(
+  ["/usr/share/pixmaps/fedora-gdm-logo.png"]="${LOGO64_SRC}"
+  ["/usr/share/pixmaps/fedora-logo-icon.png"]="${LOGO256_SRC}"
+  ["/usr/share/pixmaps/fedora_logo_med.png"]="${LOGO256_SRC}"
+  ["/usr/share/pixmaps/fedora-logo.png"]="${LOGO256_SRC}"
+  ["/usr/share/pixmaps/fedora-logo-small.png"]="${LOGO64_SRC}"
+  ["/usr/share/pixmaps/fedora-logo-sprite.png"]="${LOGO256_SRC}"
+  ["/usr/share/pixmaps/fedora_whitelogo_med.png"]="${LOGO256_SRC}"
+  ["/usr/share/pixmaps/system-logo-white.png"]="${LOGO256_SRC}"
 )
 
-for target in "${PIXMAP_TARGETS[@]}"; do
-  install -D -m 0644 "${LOGO_SRC}" "${target}"
+# Copy each logo into place
+for target in "${!PIXMAP_MAP[@]}"; do
+  src="${PIXMAP_MAP[$target]}"
+  install -D -m 0644 "${src}" "${target}"
 done
 
-# (Optional) also provide a generic distributor logo most shells/tools look for
-# Uncomment if you want GNOME Settings → About and other places to use it
-# install -D -m 0644 "${LOGO_SRC}" /usr/share/pixmaps/distributor-logo.png
-# install -D -m 0644 "${LOGO_SRC}" /usr/share/icons/hicolor/256x256/apps/distributor-logo.png
+# (Optional) also provide a generic distributor logo for GNOME Settings → About
+# install -D -m 0644 "${LOGO256_SRC}" /usr/share/pixmaps/distributor-logo.png
+# install -D -m 0644 "${LOGO256_SRC}" /usr/share/icons/hicolor/256x256/apps/distributor-logo.png
+###############################################################################
+
 
 ###############################################################################
 
