@@ -156,6 +156,31 @@ rm -rf helix-driver
 dnf5 -y copr enable yalter/niri-git
 dnf5 install -yq niri wl-clipboard swayidle mako
 
+# VPN and password manager
+cat <<'EOF' >/etc/yum.repos.d/mullvad.repo
+[mullvad]
+name=Mullvad VPN
+baseurl=https://repo.mullvad.net/rpm/stable/\$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://repo.mullvad.net/rpm/mullvad-keyring.asc
+EOF
+dnf5 install -yq mullvad-vpn
+
+rpm --import https://downloads.1password.com/linux/keys/1password.asc
+cat <<'EOF' >/etc/yum.repos.d/1password.repo
+[1password]
+name=1Password Stable Channel
+baseurl=https://downloads.1password.com/linux/rpm/stable/\$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+type=rpm-md
+gpgkey=https://downloads.1password.com/linux/keys/1password.asc
+EOF
+dnf5 install -yq 1password
+
 # Remove rust and install rustup instead
 dnf5 remove -yq cargo rust-analyzer rustfmt clippy
 dnf5 install -yq rustup
