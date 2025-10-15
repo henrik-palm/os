@@ -157,16 +157,8 @@ dnf5 -y copr enable yalter/niri-git
 dnf5 install -yq niri wl-clipboard swayidle mako
 
 # VPN and password manager
-rpm --import https://repo.mullvad.net/rpm/mullvad-keyring.asc
-cat <<'EOF' >/etc/yum.repos.d/mullvad.repo
-[mullvad]
-name=Mullvad VPN
-baseurl=https://repo.mullvad.net/rpm/stable/$basearch
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://repo.mullvad.net/rpm/mullvad-keyring.asc
-EOF
+rpm --import https://repository.mullvad.net/rpm/mullvad-keyring.asc
+dnf5 config-manager addrepo --from-repofile=https://repository.mullvad.net/rpm/stable/mullvad.repo
 dnf5 install -yq mullvad-vpn
 
 rpm --import https://downloads.1password.com/linux/keys/1password.asc
