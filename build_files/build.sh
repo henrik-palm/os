@@ -10,10 +10,13 @@ set -ouex pipefail
 # https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/39/x86_64/repoview/index.html&protocol=https&redirect=1
 
 # this installs a package from fedora repos
-dnf5 install -y tmux 
+dnf5 install -y tmux
 
 # Install Firefox from Fedora repos
 dnf5 install -y firefox
+
+# Broadcom BCM4360 WiFi driver (MacBook)
+dnf5 install -y broadcom-wl
 
 # Use a COPR Example:
 #
