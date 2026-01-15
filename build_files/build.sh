@@ -15,10 +15,6 @@ dnf5 install -y tmux
 # Install Firefox from Fedora repos
 dnf5 install -y firefox
 
-# Broadcom BCM4360 WiFi driver (MacBook)
-# Use akmod-wl which builds the kernel module via akmods (standard for ublue images)
-dnf5 install -y akmod-wl
-
 # Use a COPR Example:
 #
 # dnf5 -y copr enable ublue-os/staging
