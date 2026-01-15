@@ -16,7 +16,8 @@ dnf5 install -y tmux
 dnf5 install -y firefox
 
 # Broadcom BCM4360 WiFi driver (MacBook)
-dnf5 install -y broadcom-wl
+# Use akmod-wl which builds the kernel module via akmods (standard for ublue images)
+dnf5 install -y akmod-wl
 
 # Use a COPR Example:
 #
