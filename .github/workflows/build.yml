@@ -35,7 +35,6 @@ jobs:
       matrix:
         variant:
           - gnome
-          - gnome-nvidia
           - gnome-nvidia-open
 
     permissions:
